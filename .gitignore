@@ -1,79 +1,54 @@
-# Don't edit this file!
-# It is automatically updated after every release of https://github.com/47degrees/.github
-# If you want to suggest a change, please open a PR or issue in that repository
+# Keeping this .avdl / .avsc / .json data private (from tati's office)
+# /development/projects/statisticallyfit/github/learningdataflow/SchaemeowMorphism/src/test/scala/testData/testDataPrivateTati
+src/test/scala/testData/testDataPrivateTati/
+src/test/scala/testData/testDataPrivateTati/*
 
-### Intellij ###
+# Not committing the avro-tools-jar (too big?)
+src/test/scala/testTools/ 
+src/test/scala/testTools/*
+
+
+project/*
+project
+
+project/.boot/
+project/.boot/*
+
+project/.sbtboot/
+project/.sbtboot/*
+
+project/.ivy/*
+project/.ivy/
+
+project/target
+project/target/*
+
+project/project/*
+project/project/
+
+
+
+target
+target/
+target/*
 
 .idea
-out/
+.idea/
+.idea/*
 
-### Java ###
+.history
+.bsp/
 
+
+.metadata
+.cache-main
+.classpath
+.project
+.settings
 *.class
+*.orig
 *.log
 
-### macOS ###
-
 .DS_Store
-
-### SBT ###
-
-dist/*
-target/
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
-.history
-.cache
-.lib/
-.bsp
-
-### Scala ###
-
-*.metals
-.bloop/
-.metals/
-metals.sbt
-.scala-build/
-
-### Vim ###
-
-# Swap
-[._]*.s[a-v][a-z]
-[._]*.sw[a-p]
-[._]s[a-rt-v][a-z]
-[._]ss[a-gi-z]
-[._]sw[a-p]
-
-# Session
-Session.vim
-Sessionx.vim
-
-# Temporary
-.netrwhist
-
-# Project local build artefacts
-.output
-
-# Auto-generated tag files
-tags
-
-# Persistent undo
-[._]*.un~
-
-# Coc configuration directory
-.vim
-
-### VisualStudioCode ###
-
-.vscode/
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# Direnv
-
-.direnv
+*.iml
+scalastyle-output.xml

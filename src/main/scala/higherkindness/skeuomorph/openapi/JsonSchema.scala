@@ -24,26 +24,27 @@ import cats._
 import higherkindness.droste.data.Fix
 import higherkindness.droste.macros.deriveTraverse
 
-@deriveTraverse sealed trait JsonSchemaF[A]
+// NOTE: changed - removing this 'sealed' so I can create an OjbectF with a name! (like graphql and autoschema do)
+@deriveTraverse /*sealed*/ trait JsonSchemaF[A]
 object JsonSchemaF {
-  @deriveTraverse final case class Property[A](name: String, tpe: A)
+  @deriveTraverse /*final*/ case class Property[A](name: String, tpe: A)
 
-  final case class IntegerF[A]()                                                     extends JsonSchemaF[A]
-  final case class LongF[A]()                                                        extends JsonSchemaF[A]
-  final case class FloatF[A]()                                                       extends JsonSchemaF[A]
-  final case class DoubleF[A]()                                                      extends JsonSchemaF[A]
-  final case class StringF[A]()                                                      extends JsonSchemaF[A]
-  final case class ByteF[A]()                                                        extends JsonSchemaF[A]
-  final case class BinaryF[A]()                                                      extends JsonSchemaF[A]
-  final case class BooleanF[A]()                                                     extends JsonSchemaF[A]
-  final case class DateF[A]()                                                        extends JsonSchemaF[A]
-  final case class DateTimeF[A]()                                                    extends JsonSchemaF[A]
-  final case class PasswordF[A]()                                                    extends JsonSchemaF[A]
-  final case class ObjectF[A](properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
-  final case class ArrayF[A](values: A)                                              extends JsonSchemaF[A]
-  final case class EnumF[A](cases: List[String])                                     extends JsonSchemaF[A]
-  final case class SumF[A](cases: List[A])                                           extends JsonSchemaF[A]
-  final case class ReferenceF[A](ref: String)                                        extends JsonSchemaF[A]
+  /*final*/ case class IntegerF[A]()                                                     extends JsonSchemaF[A]
+  /*final*/ case class LongF[A]()                                                        extends JsonSchemaF[A]
+  /*final*/ case class FloatF[A]()                                                       extends JsonSchemaF[A]
+  /*final*/ case class DoubleF[A]()                                                      extends JsonSchemaF[A]
+  /*final*/ case class StringF[A]()                                                      extends JsonSchemaF[A]
+  /*final*/ case class ByteF[A]()                                                        extends JsonSchemaF[A]
+  /*final*/ case class BinaryF[A]()                                                      extends JsonSchemaF[A]
+  /*final*/ case class BooleanF[A]()                                                     extends JsonSchemaF[A]
+  /*final*/ case class DateF[A]()                                                        extends JsonSchemaF[A]
+  /*final*/ case class DateTimeF[A]()                                                    extends JsonSchemaF[A]
+  /*final*/ case class PasswordF[A]()                                                    extends JsonSchemaF[A]
+  /*final*/ case class ObjectF[A](properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
+  /*final*/ case class ArrayF[A](values: A)                                              extends JsonSchemaF[A]
+  /*final*/ case class EnumF[A](cases: List[String])                                     extends JsonSchemaF[A]
+  /*final*/ case class SumF[A](cases: List[A])                                           extends JsonSchemaF[A]
+  /*final*//*final*/ case class ReferenceF[A](ref: String)                                        extends JsonSchemaF[A]
 
   def integer[T](): JsonSchemaF[T]  = IntegerF()
   def long[T](): JsonSchemaF[T]     = LongF()

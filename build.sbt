@@ -1,11 +1,19 @@
-ThisBuild / organization       := "io.higherkindness"
+ThisBuild / organization       := /*"com.higherkindness.statisticallyfit" */"io.higherkindness"
 ThisBuild / githubOrganization := "47degrees"
 ThisBuild / scalaVersion       := "2.13.10"
 ThisBuild / crossScalaVersions := Seq("2.12.17", "2.13.10")
 
+
+
 addCommandAlias("ci-test", "scalafmtCheckAll; scalafmtSbtCheck; microsite/mdoc; +test")
 addCommandAlias("ci-docs", "github; documentation/mdoc; headerCreateAll; microsite/publishMicrosite")
 addCommandAlias("ci-publish", "github; ci-release")
+
+
+// NOTE: using the $COURSIER_CACHE location from .bash_profile
+// Source = https://alvinalexander.com/scala/sbt-how-publish-library-ivy-repository/
+publishTo := Some(Resolver.file("file", new File("/development/tmp/.coursier")))
+
 
 lazy val skeuomorph = project
   .in(file("."))

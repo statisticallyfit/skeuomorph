@@ -25,26 +25,31 @@ import higherkindness.droste.data.Fix
 import higherkindness.droste.macros.deriveTraverse
 
 // NOTE: changed - removing this 'sealed' so I can create an OjbectF with a name! (like graphql and autoschema do)
-@deriveTraverse /*sealed*/ trait JsonSchemaF[A]
+@deriveTraverse sealed trait JsonSchemaF[A]
 object JsonSchemaF {
-  @deriveTraverse /*final*/ case class Property[A](name: String, tpe: A)
+  @deriveTraverse final case class Property[A](name: String, tpe: A)
+  @deriveTraverse case class AdditionalProperties[A](tpe: A)
 
-  /*final*/ case class IntegerF[A]()                                                     extends JsonSchemaF[A]
-  /*final*/ case class LongF[A]()                                                        extends JsonSchemaF[A]
-  /*final*/ case class FloatF[A]()                                                       extends JsonSchemaF[A]
-  /*final*/ case class DoubleF[A]()                                                      extends JsonSchemaF[A]
-  /*final*/ case class StringF[A]()                                                      extends JsonSchemaF[A]
-  /*final*/ case class ByteF[A]()                                                        extends JsonSchemaF[A]
-  /*final*/ case class BinaryF[A]()                                                      extends JsonSchemaF[A]
-  /*final*/ case class BooleanF[A]()                                                     extends JsonSchemaF[A]
-  /*final*/ case class DateF[A]()                                                        extends JsonSchemaF[A]
-  /*final*/ case class DateTimeF[A]()                                                    extends JsonSchemaF[A]
-  /*final*/ case class PasswordF[A]()                                                    extends JsonSchemaF[A]
-  /*final*/ case class ObjectF[A](properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
-  /*final*/ case class ArrayF[A](values: A)                                              extends JsonSchemaF[A]
-  /*final*/ case class EnumF[A](cases: List[String])                                     extends JsonSchemaF[A]
-  /*final*/ case class SumF[A](cases: List[A])                                           extends JsonSchemaF[A]
-  /*final*//*final*/ case class ReferenceF[A](ref: String)                                        extends JsonSchemaF[A]
+  final case class IntegerF[A]()                                                     extends JsonSchemaF[A]
+  final case class LongF[A]()                                                        extends JsonSchemaF[A]
+  final case class FloatF[A]()                                                       extends JsonSchemaF[A]
+  final case class DoubleF[A]()                                                      extends JsonSchemaF[A]
+  final case class StringF[A]()                                                      extends JsonSchemaF[A]
+  final case class ByteF[A]()                                                        extends JsonSchemaF[A]
+  final case class BinaryF[A]()                                                      extends JsonSchemaF[A]
+  final case class BooleanF[A]()                                                     extends JsonSchemaF[A]
+  final case class DateF[A]()                                                        extends JsonSchemaF[A]
+  final case class DateTimeF[A]()                                                    extends JsonSchemaF[A]
+  final case class PasswordF[A]()                                                    extends JsonSchemaF[A]
+  final case class ObjectF[A](properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
+  final case class ObjectWithNameF[A](name: String, properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
+
+  // NOTE: this object is to declare map from avro using this syntax =  https://github.com/orgs/json-schema-org/discussions/207#discussioncomment-3219441
+  final case class ObjectWithAddedPropertiesF[A](name: String, additionalProperties: AdditionalProperties[A])
+  final case class ArrayF[A](values: A)                                              extends JsonSchemaF[A]
+  final case class EnumF[A](cases: List[String])                                     extends JsonSchemaF[A]
+  final case class SumF[A](cases: List[A])                                           extends JsonSchemaF[A]
+  final case class ReferenceF[A](ref: String)                                        extends JsonSchemaF[A]
 
   def integer[T](): JsonSchemaF[T]  = IntegerF()
   def long[T](): JsonSchemaF[T]     = LongF()
@@ -67,23 +72,23 @@ object JsonSchemaF {
   type Fixed = Fix[JsonSchemaF]
 
   object Fixed {
-    def integer[A](): JsonSchemaF.Fixed  = Fix(JsonSchemaF.integer())
-    def long[A](): JsonSchemaF.Fixed     = Fix(JsonSchemaF.long())
-    def float[A](): JsonSchemaF.Fixed    = Fix(JsonSchemaF.float())
-    def double[A](): JsonSchemaF.Fixed   = Fix(JsonSchemaF.double())
-    def string[A](): JsonSchemaF.Fixed   = Fix(JsonSchemaF.string())
-    def byte[A](): JsonSchemaF.Fixed     = Fix(JsonSchemaF.byte())
-    def binary[A](): JsonSchemaF.Fixed   = Fix(JsonSchemaF.binary())
-    def boolean[A](): JsonSchemaF.Fixed  = Fix(JsonSchemaF.boolean())
-    def date[A](): JsonSchemaF.Fixed     = Fix(JsonSchemaF.date())
-    def dateTime[A](): JsonSchemaF.Fixed = Fix(JsonSchemaF.dateTime())
-    def password[A](): JsonSchemaF.Fixed = Fix(JsonSchemaF.password())
+    def integer[A](): Fix[JsonSchemaF] = Fix(JsonSchemaF.integer())
+    def long[A](): Fix[JsonSchemaF]     = Fix(JsonSchemaF.long())
+    def float[A](): Fix[JsonSchemaF]   = Fix(JsonSchemaF.float())
+    def double[A](): Fix[JsonSchemaF]   = Fix(JsonSchemaF.double())
+    def string[A](): Fix[JsonSchemaF]   = Fix(JsonSchemaF.string())
+    def byte[A](): Fix[JsonSchemaF]     = Fix(JsonSchemaF.byte())
+    def binary[A](): Fix[JsonSchemaF]   = Fix(JsonSchemaF.binary())
+    def boolean[A](): Fix[JsonSchemaF]  = Fix(JsonSchemaF.boolean())
+    def date[A](): Fix[JsonSchemaF]     = Fix(JsonSchemaF.date())
+    def dateTime[A](): Fix[JsonSchemaF] = Fix(JsonSchemaF.dateTime())
+    def password[A](): Fix[JsonSchemaF] = Fix(JsonSchemaF.password())
     def `object`(properties: List[(String, JsonSchemaF.Fixed)], required: List[String]): JsonSchemaF.Fixed =
       Fix(JsonSchemaF.`object`(properties.map((JsonSchemaF.Property.apply[JsonSchemaF.Fixed] _).tupled), required))
     def array(value: JsonSchemaF.Fixed): JsonSchemaF.Fixed        = Fix(JsonSchemaF.array(value))
-    def `enum`(value: List[String]): JsonSchemaF.Fixed            = Fix(JsonSchemaF.`enum`(value))
+    def `enum`(value: List[String]): Fix[JsonSchemaF]            = Fix(JsonSchemaF.`enum`(value))
     def sum[A](value: List[JsonSchemaF.Fixed]): JsonSchemaF.Fixed = Fix(JsonSchemaF.sum(value))
-    def reference(value: String): JsonSchemaF.Fixed               = Fix(JsonSchemaF.reference(value))
+    def reference(value: String): Fix[JsonSchemaF]               = Fix(JsonSchemaF.reference(value))
   }
 
   private def jsonType(value: String, attr: (String, Json)*): Json =

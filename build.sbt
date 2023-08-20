@@ -1,7 +1,109 @@
-ThisBuild / organization       := /*"com.higherkindness.statisticallyfit" */"io.higherkindness"
+ThisBuild / organization       := "io.higherkindness"
 ThisBuild / githubOrganization := "47degrees"
 ThisBuild / scalaVersion       := "2.13.10"
 ThisBuild / crossScalaVersions := Seq("2.12.17", "2.13.10")
+ThisBuild / name := "skeuomorph"
+//ThisBuild / useCoursier := false
+//version := "0.2.1-SNAPSHOT" // TODO let version from coursier pick up?
+
+
+//publishTo := Some(s"GitHub $githubOwner Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/$githubRepository")
+
+/*
+import scala.util.control.NonFatal
+
+lazy val defaultScmInfo: Option[ScmInfo] = {
+  import scala.sys.process._
+
+  val identifier  = """([^\/]+?)"""
+  val GitHubHttps = s"https://github.com/$identifier/$identifier(?:\\.git)?".r
+  val GitHubGit   = s"git://github.com:$identifier/$identifier(?:\\.git)?".r
+  val GitHubSsh   = s"git@github.com:$identifier/$identifier(?:\\.git)?".r
+
+  val gitHubScmInfo = (user: String, repo: String) =>
+    ScmInfo(
+      url(s"https://github.com/$user/$repo"),
+      s"scm:git:https://github.com/$user/$repo.git",
+      Some(s"scm:git:git@github.com:$user/$repo.git")
+    )
+
+  try {
+    val remote = List("git", "ls-remote", "--get-url", "origin").!!.trim()
+    remote match {
+      case GitHubHttps(user, repo) => Some(gitHubScmInfo(user, repo))
+      case GitHubGit(user, repo)   => Some(gitHubScmInfo(user, repo))
+      case GitHubSsh(user, repo)   => Some(gitHubScmInfo(user, repo))
+      case _                       => None
+    }
+  } catch {
+    case NonFatal(_) => None
+  }
+}*/
+
+
+
+// Sources:
+// https://stackoverflow.com/questions/66228218/intellij-doesnt-recognize-code-in-build-sbt-and-doesnt-compile
+// https://medium.com/@supermanue/how-to-publish-a-scala-library-in-github-bfb0fa39c1e4
+
+//ThisBuild / githubEnabled   := true
+
+
+
+// TODO HELP - why getting scm error when uncommenting all this below?
+//ThisBuild / gitdomain := "github.com"
+//ThisBuild / repo := "statisticallyfit/skeuomorph"
+
+
+// source of this tokensource declaration = https://stackoverflow.com/questions/66228218/intellij-doesnt-recognize-code-in-build-sbt-and-doesnt-compile
+/*ThisBuild /  githubAuthToken := sys.env.get("GITHUB_TOKEN").map(AuthToken) //TokenSource.Environment("GITHUB_TOKEN")*/
+
+
+/*ThisBuild / githubOwner := "statisticallyfit"
+//ThisBuild / githubRepository := "skeuomorph" // TODO why when includ this it gives scm info connection error???
+
+// source of this tokensource declaration = https://stackoverflow.com/questions/66228218/intellij-doesnt-recognize-code-in-build-sbt-and-doesnt-compile
+ThisBuild / githubTokenSource := TokenSource.Environment("GITHUB_TOKEN")
+
+ThisBuild / scmInfo := Some(
+  ScmInfo(url(s"https://github.com/statisticallyfit/skeuomorph"),
+    s"scm:git:https://github.com/statisticallyfit/skeuomorph.git",
+    Some(s"scm:git:git@github.com:statisticallyfit/skeuomorph.git"))
+)*/
+
+/*ThisBuild / scmInfo := Some(
+  ScmInfo(url("http://github.com"), "scm:git@github.com:statisticallyfit/skeuomorph.git")
+)
+
+publishMavenStyle := true
+credentials += Credentials(
+  "GitHub Package Registry",
+  "maven.pkg.github.com",
+  s"$githubOwner",
+  System.getenv("GITHUB_TOKEN")
+)*/
+//publishMavenStyle := true
+////githubOwner := "statisticallyfit"
+////githubRepository := "skeuomorph"
+////githubTokenSource := TokenSource.GitConfig("github.token")  || TokenSource.Environment("GITHUB_TOKEN")
+////githubTokenSource := TokenSource.GitConfig("github.token")  || TokenSource.Environment("GITHUB_TOKEN")
+//credentials +=
+//     Credentials(
+//       "GitHub Package Registry",
+//       "https://maven.pkg.github.com",
+//       "statisticallyfit", //githubOwner,
+//       sys.env.getOrElse("GITHUB_TOKEN", "N/A")
+//     )
+
+
+
+
+
+// NOTE: using the $COURSIER_CACHE location from .bash_profile
+// Source = https://alvinalexander.com/scala/sbt-how-publish-library-ivy-repository/
+publishTo := Some(Resolver.file("file", new File("/development/tmp/.coursier")))
+
+
 
 
 
@@ -10,15 +112,47 @@ addCommandAlias("ci-docs", "github; documentation/mdoc; headerCreateAll; microsi
 addCommandAlias("ci-publish", "github; ci-release")
 
 
-// NOTE: using the $COURSIER_CACHE location from .bash_profile
-// Source = https://alvinalexander.com/scala/sbt-how-publish-library-ivy-repository/
-publishTo := Some(Resolver.file("file", new File("/development/tmp/.coursier")))
+
+
+//---------------------------------------------------------------------------------------------------------
+// Added by statisticallyfit
+// Reason: for sbt plugins - to make skeuomorph be imported into my project via github
+
+
+enablePlugins(BuildInfoPlugin)
+//enablePlugins(SbtCoursierPlugin)
+enablePlugins(GitPlugin)
+enablePlugins(SbtDotenv)
+enablePlugins(GitHubPackagesPlugin)
 
 
 lazy val skeuomorph = project
-  .in(file("."))
-  .settings(commonSettings)
-  .settings(moduleName := "skeuomorph")
+     .in(file("."))
+     .settings(commonSettings)
+     .settings(moduleName := "skeuomorph")
+     .enablePlugins(BuildInfoPlugin) // TODO how to know what is the name of my declared plugins in the plugins.sbt file?
+     .enablePlugins(GitPlugin)
+     .enablePlugins(SbtDotenv)
+     .enablePlugins(GitHubPackagesPlugin)
+
+
+// Source
+// https://stackoverflow.com/a/67908451
+// https://xebia.com/blog/git-subproject-compile-time-dependencies-in-sbt/
+// https://stackoverflow.com/questions/42206668/scala-sbt-file-dependency-from-github-repository
+//https://stackoverflow.com/questions/20136075/using-git-local-repository-as-dependency-in-sbt-project
+//https://stackoverflow.com/questions/67861343/sbt-how-to-ensure-that-local-snapshot-dependency-is-picked-up
+//lazy val skeuomorphExtendedInLocalCoursier = ProjectRef(file("/development/tmp/.coursier"), "skeuomorph_2.13-0.0.0+1149-7164525f+20230818-1637-SNAPSHOT")
+//lazy val skeuomorphExtendedInGit = ProjectRef(uri("https://github.com/statisticallyfit/skeuomorph.git#master"), "skeuomorph")
+//lazy val skeuomorph = Project("skeuomorph", file("."))
+//     .enablePlugins(BuildInfoPlugin) // TODO how to know what is the name of my declared plugins in the plugins.sbt file?
+//     .enablePlugins(SbtDotenv)
+//     .enablePlugins(GitHubPackagesPlugin)
+//////.dependsOn(skeuomorphExtendedInGit)
+
+
+// ---------------------------------------------------------------------------------------------------------
+
 
 lazy val microsite = project
   .dependsOn(skeuomorph)
@@ -92,8 +226,33 @@ lazy val commonSettings = Seq(
     "org.specs2"           %% "specs2-scalacheck" % "4.12.4-js-ec" % Test,
     "org.scalacheck"       %% "scalacheck"        % "1.17.0"       % Test,
     "io.chrisdavenport"    %% "cats-scalacheck"   % "0.3.2"        % Test,
-    "org.scalatra.scalate" %% "scalate-core"      % "1.9.8"        % Test
-  )
+    "org.scalatra.scalate" %% "scalate-core"      % "1.9.8"        % Test,
+
+
+/* // Still doesn't work! - why cannot import them?
+     "io.get-coursier" % "sbt-coursier" % "2.0.8",
+     "com.codecommit" % "sbt-github-packages" % "0.3.1",
+     "nl.gn0s1s" % "sbt-dotenv" % "2.1.233",
+     "com.eed3si9n" % "sbt-buildinfo" % "0.11.0"
+*/
+
+/*
+         addSbtPlugin ("io.get-coursier" % "sbt-coursier" % "2.0.8")
+         addSbtPlugin ("com.codecommit" % "sbt-github-packages" % "0.3.1")
+         addSbtPlugin ("nl.gn0s1s" % "sbt-dotenv" % "2.1.233")
+         addSbtPlugin ("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
+*/
+
+  ),
+  resolvers ++= (/*Seq(Resolver.githubPackages("statisticallyfit"))
+       ++ */Resolver.sonatypeOssRepos("releases")
+       //++ Seq(Resolver.mavenLocal)
+       ++ Resolver.sonatypeOssRepos("snapshots")
+       ++ Seq("jitpack" at "https://jitpack.io") // jitpack for opetushallitus
+       //++ Seq("Local Coursier Repository" at ("file://" + "/development/tmp/.coursier"))
+       //++ Seq("Local Ivy Repository" at ("file://" + Path.userHome.absolutePath + "/.ivy2/local"))
+       //ThisBuild / useCoursier := false)
+       )
 ) ++ compilerPlugins ++ macroSettings ++ Seq(
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, _)) =>
@@ -137,3 +296,19 @@ def on[A](major: Int, minor: Int)(a: A): Def.Initialize[Seq[A]] =
       case _                              => Nil
     }
   }
+
+
+
+
+// -------------
+// Added by statisticallyfit
+/*
+
+import scala.concurrent.duration.DurationInt
+import lmcoursier.definitions.CachePolicy
+
+
+csrConfiguration := csrConfiguration.value
+     .withTtl(Some(0.seconds))
+     .withCachePolicies(Vector(CachePolicy.LocalOnly))
+*/

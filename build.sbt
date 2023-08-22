@@ -65,6 +65,8 @@ lazy val defaultScmInfo: Option[ScmInfo] = {
 // source of this tokensource declaration = https://stackoverflow.com/questions/66228218/intellij-doesnt-recognize-code-in-build-sbt-and-doesnt-compile
 ThisBuild / githubTokenSource := TokenSource.Environment("GITHUB_TOKEN")
 
+// TODO - could not make this git repo import work - left off at scminfo connection error = https://github.com/alejandrohdezma/sbt-github/blob/782cb7708db72ffc0195962bbd78f6e7da0245cc/modules/sbt-github/src/main/scala/com/alejandrohdezma/sbt/github/SbtGithubPlugin.scala#L141C5-L141C36
+
 ThisBuild / scmInfo := Some(
   ScmInfo(url(s"https://github.com/statisticallyfit/skeuomorph"),
     s"scm:git:https://github.com/statisticallyfit/skeuomorph.git",

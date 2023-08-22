@@ -21,6 +21,8 @@ import io.circe._
 import cats.syntax.all._
 import higherkindness.droste._
 import higherkindness.droste.syntax.embed._
+import io.circe.Decoder.Result
+
 import scala.language.postfixOps
 
 object JsonDecoders {
@@ -68,29 +70,117 @@ object JsonDecoders {
     Decoder.instance(_.downField("oneOf").as[List[A]].map(JsonSchemaF.sum[A](_).embed))
 
   private def objectJsonSchemaDecoder[A: Embed[JsonSchemaF, *]]: Decoder[A] =
-    Decoder.instance { c =>
+
+    Decoder.instance { c: HCursor =>
+
       def propertyExists(name: String): Decoder.Result[Unit] =
         c.downField(name)
-          .success
-          .fold(DecodingFailure(s"$name property does not exist", c.history).asLeft[Unit])(_ =>
-            ().asRight[DecodingFailure]
-          )
+             .success
+             .fold(DecodingFailure(s"$name property does not exist", c.history).asLeft[Unit])(_ =>
+               ().asRight[DecodingFailure]
+             )
+
       def isObject: Decoder.Result[Unit] =
         validateType(c, "object") orElse
-          propertyExists("properties") orElse
-          propertyExists("allOf")
-      for {
-        _        <- isObject
-        required <- c.downField("required").as[Option[List[String]]]
-        properties <-
-          c.downField("properties")
-            .as[Option[Map[String, A]]](
-              Decoder.decodeOption(Decoder.decodeMap[String, A](KeyDecoder.decodeKeyString, jsonSchemaDecoder[A]))
-            )
-            .map(_.getOrElse(Map.empty))
-            .map(_.toList.map(JsonSchemaF.Property.apply[A] _ tupled))
+             propertyExists("properties") orElse
+             propertyExists("allOf")
+
+      // Added by @statisticallyfit
+      def isObjectMap: Boolean = isObjectNamed && propertyExists("additionalProperties").isRight
+
+      // Added by @statisticallyfit
+      def isObjectNamed: Boolean = isObject.isRight && propertyExists("title").isRight
+
+      // Added by @statisticallyfit:
+      // Separating by different kinds of object classes so can properly interpret a MAP from avro into json
+      def makeResultObjectMap: Result[A] = for {
+        title: String <- c.downField("title").as[Option[String]].map(_.getOrElse(""))
+        addProps: JsonSchemaF.AdditionalProperties[A] <- {
+          //.as[Option[A]]
+          val res1: Result[Option[Map[String, A]]] = c.downField("additionalProperties").as[Option[Map[String, A]]](
+            Decoder.decodeOption(Decoder.decodeMap[String, A](KeyDecoder.decodeKeyString, jsonSchemaDecoder[A]))
+          )
+
+          val res2: Result[Map[String, A]] = res1.map(_.getOrElse(Map.empty))
+
+          val res3: Result[JsonSchemaF.AdditionalProperties[A]] = {
+            res2.map(_.toList.map(tup => JsonSchemaF.AdditionalProperties.apply[A](tup._2)).head)
+            //res2.map((mapStrA: Map[String, A]) => mapStrA.toList.map((tup: (String, A)) => JsonSchemaF.AdditionalProperties(tup._2) ).head )
+
+          }
+          res3
+        }
+      } yield JsonSchemaF.objectMap[A](name = title, additionalProperties = addProps).embed
+
+
+      def makeResultObjectNamed: Result[A] = for {
+        title: String <- c.downField("title").as[Option[String]].map(_.getOrElse(""))
+        required: List[String] <- c.downField("required").as[Option[List[String]]].map(_.getOrElse(List.empty))
+        properties: List[JsonSchemaF.Property[A]] <- {
+          //.as[Option[A]]
+          val resOptMap: Result[Option[Map[String, A]]] = c.downField("properties").as[Option[Map[String, A]]](
+            Decoder.decodeOption(Decoder.decodeMap[String, A](KeyDecoder.decodeKeyString, jsonSchemaDecoder[A]))
+          )
+
+          val resMap: Result[Map[String, A]] = resOptMap.map(_.getOrElse(Map.empty))
+
+          val resListProps: Result[List[JsonSchemaF.Property[A]]] = resMap
+               .map((mapStrA: Map[String, A]) => mapStrA.toList.map((JsonSchemaF.Property.apply[A] _).tupled /*{
+                 val funcTup: ((String, A)) => JsonSchemaF.Property[A] = (JsonSchemaF.Property.apply[A] _).tupled
+                 funcTup(tup)
+               }*/))
+
+          resListProps
+        }
+      } yield JsonSchemaF.objectName[A](title, properties, required).embed
+
+
+      def makeResultObjectSimple: Result[A] = for {
+        //_        <- isObject
+        required: Option[List[String]] <- c.downField("required").as[Option[List[String]]]
+        properties: List[JsonSchemaF.Property[A]] <- {
+
+          val resOptMap: Result[Option[Map[String, A]]] =
+
+            c.downField("properties").as[Option[Map[String, A]]](
+              Decoder.decodeOption(
+                Decoder.decodeMap[String, A](KeyDecoder.decodeKeyString, jsonSchemaDecoder[A])
+              ))
+
+          val resMap: Result[Map[String, A]] = resOptMap
+               .map((optMapStrA: Option[Map[String, A]]) => optMapStrA.getOrElse(Map.empty))
+
+
+          // NOTE: the _ applied after a 'def' function makes that 'def' function into a lambda.
+          // NOTE: writing .tupled  of a lambda-ized function makes the parameter list of tha tfunction into a tupple
+          // SOURCE = https://stackoverflow.com/a/1987863
+
+          val resListProps: Result[List[JsonSchemaF.Property[A]]] = resMap
+               .map((mapStrA: Map[String, A]) => mapStrA.toList.map((tup: (String, A)) => {
+                 val funcTup: ((String, A)) => JsonSchemaF.Property[A] = (JsonSchemaF.Property.apply[A] _).tupled
+                 funcTup(tup)
+               }))
+
+          resListProps
+        }
       } yield JsonSchemaF.`object`[A](properties, required.getOrElse(List.empty)).embed
+
+
+
+      // Case matching to decide which object-type to use
+      isObjectMap match {
+
+        case true => makeResultObjectMap
+
+        case false => isObjectNamed match {
+
+          case true => makeResultObjectNamed
+
+          case false => makeResultObjectSimple
+        }
+      }
     }
+
 
   private def arrayJsonSchemaDecoder[A: Embed[JsonSchemaF, *]]: Decoder[A] =
     Decoder.instance { c =>

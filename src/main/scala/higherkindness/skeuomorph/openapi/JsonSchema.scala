@@ -42,10 +42,10 @@ object JsonSchemaF {
   final case class DateTimeF[A]()                                                    extends JsonSchemaF[A]
   final case class PasswordF[A]()                                                    extends JsonSchemaF[A]
   final case class ObjectF[A](properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
-  final case class ObjectWithNameF[A](name: String, properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
+  final case class ObjectNameF[A](name: String, properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
 
   // NOTE: this object is to declare map from avro using this syntax =  https://github.com/orgs/json-schema-org/discussions/207#discussioncomment-3219441
-  final case class ObjectWithAddedPropertiesF[A](name: String, additionalProperties: AdditionalProperties[A])
+  final case class ObjectMapF[A](name: String, additionalProperties: AdditionalProperties[A]) extends JsonSchemaF[A]
   final case class ArrayF[A](values: A)                                              extends JsonSchemaF[A]
   final case class EnumF[A](cases: List[String])                                     extends JsonSchemaF[A]
   final case class SumF[A](cases: List[A])                                           extends JsonSchemaF[A]
@@ -62,8 +62,12 @@ object JsonSchemaF {
   def date[T](): JsonSchemaF[T]     = DateF()
   def dateTime[T](): JsonSchemaF[T] = DateTimeF()
   def password[T](): JsonSchemaF[T] = PasswordF()
-  def `object`[T](properties: List[Property[T]], required: List[String]): JsonSchemaF[T] =
+  def `object`[T](properties: List[Property[T]], required: List[String]): JsonSchemaF[T] = {
     ObjectF(properties, required)
+  }
+
+  def objectName[T](name: String, properties: List[Property[T]], required: List[String]): JsonSchemaF[T] = ObjectNameF(name, properties, required)
+  def objectMap[T](name: String, additionalProperties: AdditionalProperties[T]): JsonSchemaF[T] = ObjectMapF(name, additionalProperties)
   def array[T](values: T): JsonSchemaF[T]            = ArrayF(values)
   def `enum`[T](cases: List[String]): JsonSchemaF[T] = EnumF(cases)
   def sum[T](cases: List[T]): JsonSchemaF[T]         = SumF(cases)

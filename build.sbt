@@ -231,20 +231,6 @@ lazy val commonSettings = Seq(
     "org.scalatra.scalate" %% "scalate-core"      % "1.9.8"        % Test,
 
 
-/* // Still doesn't work! - why cannot import them?
-     "io.get-coursier" % "sbt-coursier" % "2.0.8",
-     "com.codecommit" % "sbt-github-packages" % "0.3.1",
-     "nl.gn0s1s" % "sbt-dotenv" % "2.1.233",
-     "com.eed3si9n" % "sbt-buildinfo" % "0.11.0"
-*/
-
-/*
-         addSbtPlugin ("io.get-coursier" % "sbt-coursier" % "2.0.8")
-         addSbtPlugin ("com.codecommit" % "sbt-github-packages" % "0.3.1")
-         addSbtPlugin ("nl.gn0s1s" % "sbt-dotenv" % "2.1.233")
-         addSbtPlugin ("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
-*/
-
   ),
   resolvers ++= (/*Seq(Resolver.githubPackages("statisticallyfit"))
        ++ */Resolver.sonatypeOssRepos("releases")
@@ -275,6 +261,7 @@ lazy val compilerPlugins = Seq(
     case Some((2, _)) =>
       Seq(
         compilerPlugin("org.typelevel" % "kind-projector"     % "0.13.2" cross CrossVersion.full),
+        // NOTE: withFilter error (in objectJsonSchemaDecoder) in for-comprehension so using this plugin = https://github.com/oleg-py/better-monadic-for
         compilerPlugin("com.olegpy"   %% "better-monadic-for" % "0.3.1")
       )
     case _ => Seq.empty

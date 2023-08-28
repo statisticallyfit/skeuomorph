@@ -95,7 +95,7 @@ object JsonDecoders {
 			// Separating by different kinds of object classes so can properly interpret a MAP from avro into json
 			def makeJsonCirceObjectMap: Result[A] = {
 
-				val objmap: (String, JsonSchemaF.AdditionalProperties[A]) => JsonSchemaF[A] = (title, addProps) => JsonSchemaF.objectMap[A](name = title, additionalProperties = addProps)
+				val objmap: (String, JsonSchemaF.AdditionalProperties[A]) => JsonSchemaF[A] = (title, addProps) => JsonSchemaF.objectNamedMap[A](name = title, additionalProperties = addProps)
 
 
 				val resultArgs: Result[(String, JsonSchemaF.AdditionalProperties[A])] = for {
@@ -138,7 +138,7 @@ object JsonDecoders {
 
 			def makeJsonCirceObjectNamed: Result[A] = {
 
-				val objname: (String, List[JsonSchemaF.Property[A]], List[String]) => JsonSchemaF[A] = (title, properties, required) => JsonSchemaF.objectName[A](name = title, properties = properties, required = required)
+				val objname: (String, List[JsonSchemaF.Property[A]], List[String]) => JsonSchemaF[A] = (title, properties, required) => JsonSchemaF.objectNamed[A](name = title, properties = properties, required = required)
 
 				val resultArgs: Result[(String, List[JsonSchemaF.Property[A]], List[String])] =
 					for {

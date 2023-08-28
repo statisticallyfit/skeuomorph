@@ -42,10 +42,12 @@ object JsonSchemaF {
   final case class DateTimeF[A]()                                                    extends JsonSchemaF[A]
   final case class PasswordF[A]()                                                    extends JsonSchemaF[A]
   final case class ObjectF[A](properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
-  final case class ObjectNameF[A](name: String, properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
+  final case class ObjectNamedF[A](name: String, properties: List[Property[A]], required: List[String]) extends JsonSchemaF[A]
+  ///Need non-named map because Avro has no name in th emap (wen converting avro-skeuo -> circe -> skeuo, result doesn't work if no name)
+  final case class ObjectMapF[A](additionalProperties: AdditionalProperties[A]) extends JsonSchemaF[A]
 
   // NOTE: this object is to declare map from avro using this syntax =  https://github.com/orgs/json-schema-org/discussions/207#discussioncomment-3219441
-  final case class ObjectMapF[A](name: String, additionalProperties: AdditionalProperties[A]) extends JsonSchemaF[A]
+  final case class ObjectNamedMapF[A](name: String, additionalProperties: AdditionalProperties[A]) extends JsonSchemaF[A]
   final case class ArrayF[A](values: A)                                              extends JsonSchemaF[A]
   final case class EnumF[A](cases: List[String])                                     extends JsonSchemaF[A]
   final case class SumF[A](cases: List[A])                                           extends JsonSchemaF[A]
@@ -66,8 +68,9 @@ object JsonSchemaF {
     ObjectF(properties, required)
   }
 
-  def objectName[T](name: String, properties: List[Property[T]], required: List[String]): JsonSchemaF[T] = ObjectNameF(name, properties, required)
-  def objectMap[T](name: String, additionalProperties: AdditionalProperties[T]): JsonSchemaF[T] = ObjectMapF(name, additionalProperties)
+  def objectNamed[T](name: String, properties: List[Property[T]], required: List[String]): JsonSchemaF[T] = ObjectNamedF(name, properties, required)
+  def objectNamedMap[T](name: String, additionalProperties: AdditionalProperties[T]): JsonSchemaF[T] = ObjectNamedMapF(name, additionalProperties)
+  def objectMap[T](additionalProperties: AdditionalProperties[T]): JsonSchemaF[T] = ObjectMapF(additionalProperties)
   def array[T](values: T): JsonSchemaF[T]            = ArrayF(values)
   def `enum`[T](cases: List[String]): JsonSchemaF[T] = EnumF(cases)
   def sum[T](cases: List[T]): JsonSchemaF[T]         = SumF(cases)

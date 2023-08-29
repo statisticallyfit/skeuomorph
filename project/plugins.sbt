@@ -32,5 +32,6 @@ Seq[(String, ModuleID)](
   "GITHUBPACKAGES" -> "com.codecommit" % "sbt-github-packages" % "0.5.2",
   "DOTENV" -> "nl.gn0s1s" % "sbt-dotenv" % "3.0.0",
   "BUILDINFO" -> "com.eed3si9n" % "sbt-buildinfo" % "0.11.0",
-  "SBTGIT" -> "com.github.sbt" % "sbt-git" % "2.0.1"
+  "SBTGIT" -> "com.github.sbt" % "sbt-git" % "2.0.1",
+  "SBTGITHUB" -> "com.alejandrohdezma" % "sbt-github"  % "0.11.11"
 ).flatMap(maybeEnable)

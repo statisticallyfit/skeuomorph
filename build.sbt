@@ -123,6 +123,7 @@ addCommandAlias("ci-publish", "github; ci-release")
 
 enablePlugins(BuildInfoPlugin)
 //enablePlugins(SbtCoursierPlugin)
+enablePlugins(SbtGithubPlugin)
 enablePlugins(GitPlugin)
 enablePlugins(SbtDotenv)
 enablePlugins(GitHubPackagesPlugin)
@@ -134,6 +135,7 @@ lazy val skeuomorph = project
      .settings(moduleName := "skeuomorph")
      .enablePlugins(BuildInfoPlugin) // TODO how to know what is the name of my declared plugins in the plugins.sbt file?
      .enablePlugins(GitPlugin)
+     .enablePlugins(SbtGithubPlugin)
      .enablePlugins(SbtDotenv)
      .enablePlugins(GitHubPackagesPlugin)
 

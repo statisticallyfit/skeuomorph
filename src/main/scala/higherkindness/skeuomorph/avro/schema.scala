@@ -131,6 +131,12 @@ object AvroF {
       case (TDouble(), TDouble())                         => true
       case (TBytes(), TBytes())                           => true
       case (TString(), TString())                         => true
+      // Added by @statisticallyfit: logical types equality - why not here before?
+      case (TDate(), TDate())                             => true
+      case (TTimeMillis(), TTimeMillis())                 => true
+      case (TTimestampMillis(), TTimestampMillis())       => true
+      case (TDecimal(p1: Int, s1: Int), TDecimal(p2, s2)) => p1 == p2 && s1 == s2
+      case (TDecimal(p1: Int, s1: Int), TDecimal(p2, s2)) => p1 == p2 && s1 == s2
       case (TNamedType(ns, n), TNamedType(ns2, n2))       => ns === ns2 && n === n2
       case (TArray(i), TArray(i2))                        => i === i2
       case (TMap(v), TMap(v2))                            => v === v2
@@ -154,6 +160,11 @@ object AvroF {
   def double[A](): AvroF[A]                                   = TDouble[A]()
   def bytes[A](): AvroF[A]                                    = TBytes[A]()
   def string[A](): AvroF[A]                                   = TString[A]()
+  // Added by @statisticallyfit - logical types  - why not here before?
+  def date[A](): AvroF[A]                                     = TDate[A]()
+  def timeMillis[A](): AvroF[A]                               = TTimeMillis[A]()
+  def timestampMillis[A](): AvroF[A]                          = TTimestampMillis[A]()
+  def decimal[A](precision: Int, scale: Int): AvroF[A]        = TDecimal[A](precision, scale)
   def namedType[A](namespace: String, name: String): AvroF[A] = TNamedType[A](namespace, name)
   def array[A](item: A): AvroF[A]                             = TArray[A](item)
   def map[A](values: A): AvroF[A]                             = TMap[A](values)

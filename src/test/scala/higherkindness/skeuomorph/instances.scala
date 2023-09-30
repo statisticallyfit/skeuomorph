@@ -265,7 +265,9 @@ object instances {
       Fixed.date().pure[Gen],
       Fixed.dateTime().pure[Gen],
       Fixed.password().pure[Gen],
-      Gen.listOfN(2, nonEmptyString) map Fixed.enum,
+      // NOTE: changed @statisicallyfit - changed line here since made named Enum
+      // Gen.listOfN(2, nonEmptyString) map Fixed.enum
+      Gen.listOfN(2, nonEmptyString).map(lstStr => Fixed.enum(lstStr, None)),
       nonEmptyString map Fixed.reference
     )
 
@@ -305,7 +307,9 @@ object instances {
         JsonSchemaF.dateTime[T]().pure[Gen],
         JsonSchemaF.password[T]().pure[Gen],
         T.arbitrary map JsonSchemaF.array,
-        Gen.listOf(nonEmptyString) map JsonSchemaF.enum[T],
+        // NOTE: changed @statisicallyfit - changed line here since made named Enum
+        //Gen.listOf(nonEmptyString) map JsonSchemaF.enum[T],
+        Gen.listOf(nonEmptyString).map(lstStr => JsonSchemaF.enum[T](lstStr, name = None)),
         Gen.listOf(T.arbitrary) map JsonSchemaF.sum[T],
         objectGen,
         nonEmptyString.map(JsonSchemaF.reference[T])

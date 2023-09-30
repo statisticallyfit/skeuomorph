@@ -25,7 +25,7 @@ object Optimize {
   def namedTypesTrans[T](name: String): Trans[JsonSchemaF, JsonSchemaF, T] =
     Trans {
       case JsonSchemaF.ObjectF(_, _) => JsonSchemaF.reference[T](name)
-      case JsonSchemaF.EnumF(_)      => JsonSchemaF.reference[T](name)
+      case JsonSchemaF.EnumF(_, _)      => JsonSchemaF.reference[T](name)
       case other                     => other
     }
 
@@ -60,7 +60,7 @@ object Optimize {
     import higherkindness.droste.syntax.project.toProjectSyntaxOps
     t.project match {
       case ObjectF(properties, _) if properties.nonEmpty => true
-      case EnumF(_)                                      => true
+      case EnumF(_, _)                                      => true
       case _                                             => false
     }
   }

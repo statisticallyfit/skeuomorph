@@ -77,7 +77,8 @@ object print {
 
         case (ObjectF(properties, _), _) if properties.isEmpty => "io.circe.Json"
         case (ArrayF(x), _)                                    => listDef.print(x)
-        case (EnumF(fields), Some(name))                       => sealedTraitDef.print(name -> fields)
+        // NOTE: @statisticallyfit, ignoring enum name for now here
+        case (EnumF(fields, nameOfEnum), Some(name))                       => sealedTraitDef.print(name -> fields)
         case (SumF(cases), Some(name))                         => sumDef.print(name -> cases)
         case (ReferenceF(schemasRegex(ref)), _)                => ident(ref)
         case (ReferenceF(parametersRegex(ref)), _)             => ident(ref)
@@ -92,7 +93,7 @@ object print {
     import higherkindness.droste.syntax.project.toProjectSyntaxOps
     t.project match {
       case ObjectF(p, _) => p.isEmpty
-      case EnumF(_)      => false
+      case EnumF(_, _)      => false
       case ArrayF(_)     => false
       case ReferenceF(_) => false
       case SumF(_)       => false

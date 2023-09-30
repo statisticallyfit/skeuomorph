@@ -49,7 +49,8 @@ object JsonSchemaF {
   // NOTE: this object is to declare map from avro using this syntax =  https://github.com/orgs/json-schema-org/discussions/207#discussioncomment-3219441
   final case class ObjectNamedMapF[A](name: String, additionalProperties: AdditionalProperties[A]) extends JsonSchemaF[A]
   final case class ArrayF[A](values: A)                                              extends JsonSchemaF[A]
-  final case class EnumF[A](cases: List[String])                                     extends JsonSchemaF[A]
+  final case class EnumF[A](cases: List[String], name: Option[String] = None)                                     extends JsonSchemaF[A]
+  //final case class EnumNamedF[A](name: )
   final case class SumF[A](cases: List[A])                                           extends JsonSchemaF[A]
   final case class ReferenceF[A](ref: String)                                        extends JsonSchemaF[A]
 
@@ -72,7 +73,7 @@ object JsonSchemaF {
   def objectNamedMap[T](name: String, additionalProperties: AdditionalProperties[T]): JsonSchemaF[T] = ObjectNamedMapF(name, additionalProperties)
   def objectMap[T](additionalProperties: AdditionalProperties[T]): JsonSchemaF[T] = ObjectMapF(additionalProperties)
   def array[T](values: T): JsonSchemaF[T]            = ArrayF(values)
-  def `enum`[T](cases: List[String]): JsonSchemaF[T] = EnumF(cases)
+  def `enum`[T](cases: List[String], name: Option[String] = None): JsonSchemaF[T] = EnumF(cases, name)
   def sum[T](cases: List[T]): JsonSchemaF[T]         = SumF(cases)
   def reference[T](ref: String): JsonSchemaF[T]      = ReferenceF[T](ref)
 
@@ -93,7 +94,7 @@ object JsonSchemaF {
     def `object`(properties: List[(String, JsonSchemaF.Fixed)], required: List[String]): JsonSchemaF.Fixed =
       Fix(JsonSchemaF.`object`(properties.map((JsonSchemaF.Property.apply[JsonSchemaF.Fixed] _).tupled), required))
     def array(value: JsonSchemaF.Fixed): JsonSchemaF.Fixed        = Fix(JsonSchemaF.array(value))
-    def `enum`(value: List[String]): Fix[JsonSchemaF]            = Fix(JsonSchemaF.`enum`(value))
+    def `enum`(value: List[String], name: Option[String] = None): Fix[JsonSchemaF]            = Fix(JsonSchemaF.`enum`(value, name))
     def sum[A](value: List[JsonSchemaF.Fixed]): JsonSchemaF.Fixed = Fix(JsonSchemaF.sum(value))
     def reference(value: String): Fix[JsonSchemaF]               = Fix(JsonSchemaF.reference(value))
   }
@@ -128,8 +129,21 @@ object JsonSchemaF {
           "array",
           "items" -> values
         )
-      case EnumF(cases) =>
-        jsonType("string", "enum" -> Json.fromValues(cases.map(Json.fromString)))
+
+        // Changed by @statisticallyfit : so that EnumF can have name (doing deepMerge)
+      case EnumF(cases: List[String], name: Option[String]) => {
+        val base: Json = Json.obj(
+          "type" -> Json.fromString("string"),
+          "enum" -> Json.fromValues(cases.map(Json.fromString))
+        )
+
+        val withName: Json = name.fold(base)(n => base deepMerge Json.obj("name" -> Json.fromString(n)))
+
+        val result: Json = if(name.isDefined) withName else base
+
+        result
+      }
+        //jsonType("string", "enum" -> Json.fromValues(cases.map(Json.fromString)))
       case SumF(cases) =>
         Json.obj("oneOf" -> Json.arr(cases: _*))
       case ReferenceF(value) =>
@@ -156,7 +170,7 @@ object JsonSchemaF {
       case (PasswordF(), PasswordF())         => true
       case (ObjectF(p1, r1), ObjectF(p2, r2)) => p1 === p2 && r1 === r2
       case (ArrayF(v1), ArrayF(v2))           => v1 === v2
-      case (EnumF(c1), EnumF(c2))             => c1 === c2
+      case (EnumF(c1, n1), EnumF(c2, n2))             => n1 == n2 && c1 === c2
       case (SumF(c1), SumF(c2))               => c1 === c2
       case (ReferenceF(r1), ReferenceF(r2))   => r1 === r2
       case _                                  => false

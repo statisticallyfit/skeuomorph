@@ -50,12 +50,17 @@ object AvroF {
       avroF.schema
     )
 
+  // Edited by @statisticallyfit so can hold all the parameters of field
   def field2Obj(f: Field[Json]): Json =
     Json.obj(
       "name"    -> Json.fromString(f.name),
+      "type"    -> f.tpe,
       "aliases" -> Json.arr(f.aliases.map(Json.fromString): _*),
-      "type"    -> f.tpe
+      "doc" -> Json.fromString(f.doc.getOrElse(""))
+      //order2Order
     )
+
+
 
   sealed trait Order
   object Order {
@@ -114,7 +119,9 @@ object AvroF {
       doc: Option[String],
       symbols: List[String]
   ) extends AvroF[A]
-  final case class TUnion[A](options: NonEmptyList[A])                                                  extends AvroF[A]
+
+  // Changed by @statisticallyfit - adding name because avro string has union named = https://hyp.is/SAlyzF-nEe6ykK8IVU0JJw/docs.airbyte.com/understanding-airbyte/json-avro-conversion/
+  final case class TUnion[A](options: NonEmptyList[A], name: Option[String] = None)  extends AvroF[A]
   final case class TFixed[A](name: String, namespace: Option[String], aliases: List[String], size: Int) extends AvroF[A]
   final case class TDate[A]()                                                                           extends AvroF[A]
   final case class TTimestampMillis[A]()                                                                extends AvroF[A]
@@ -140,7 +147,7 @@ object AvroF {
       case (TNamedType(ns, n), TNamedType(ns2, n2))       => ns === ns2 && n === n2
       case (TArray(i), TArray(i2))                        => i === i2
       case (TMap(v), TMap(v2))                            => v === v2
-      case (TUnion(o), TUnion(o2))                        => o === o2
+      case (TUnion(o1, n1), TUnion(o2, n2))                        => o1 === o2 && n1 == n2
       case (TFixed(n, ns, a, s), TFixed(n2, ns2, a2, s2)) => n === n2 && ns === ns2 && a === a2 && s === s2
       case (TRecord(n, ns, al, d, f), TRecord(n2, ns2, al2, d2, f2)) =>
         n === n2 && ns === ns2 && al === al2 && d === d2 && f === f2
@@ -182,7 +189,7 @@ object AvroF {
       doc: Option[String],
       symbols: List[String]
   ): AvroF[A] = TEnum(name, namespace, aliases, doc, symbols)
-  def union[A](options: NonEmptyList[A]): AvroF[A] = TUnion(options)
+  def union[A](options: NonEmptyList[A], name: Option[String] = None): AvroF[A] = TUnion(options, name)
   def fixed[A](name: String, namespace: Option[String], aliases: List[String], size: Int): AvroF[A] =
     TFixed(name, namespace, aliases, size)
 
@@ -235,7 +242,7 @@ object AvroF {
     case Type.UNION =>
       val types = sch.getTypes.asScala.toList
       AvroF.TUnion(
-        NonEmptyList.fromListUnsafe(types)
+        options = NonEmptyList.fromListUnsafe(types), name = None
       )
     case Type.FIXED =>
       AvroF.TFixed(
@@ -282,7 +289,7 @@ object AvroF {
         val withDoc = doc.fold(withAliases)(f => withAliases deepMerge Json.obj("doc" -> Json.fromString(f)))
         withDoc
       case TEnum(_, _, _, _, _) => ???
-      case TUnion(options)      => Json.arr(options.toList: _*)
+      case TUnion(options, name)      => Json.arr(options.toList: _*)
       case TFixed(name, _, _, size) =>
         Json.obj(
           "type" -> Json.fromString("fixed"),
